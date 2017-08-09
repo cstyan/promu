@@ -21,7 +21,6 @@ import (
 
 	"github.com/mcuadros/go-version"
 	"github.com/pkg/errors"
-	"github.com/progrium/go-shell"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -91,13 +90,6 @@ func init() {
 }
 
 func runCrossbuild() {
-	defer shell.ErrExit()
-	shell.Tee = os.Stdout
-
-	if viper.GetBool("verbose") {
-		shell.Trace = true
-	}
-
 	var (
 		mainPlatforms    []string
 		armPlatforms     []string
@@ -180,9 +172,17 @@ type platformGroup struct {
 func (pg platformGroup) Build(repoPath string) error {
 	if platformsParam := strings.Join(pg.Platforms[:], " "); platformsParam != "" {
 		fmt.Printf("> running the %s builder docker image\n", pg.Name)
-		if err := docker("run --rm -t -v $PWD:/app", pg.DockerImage, "-i", repoPath, "-p", sh.Quote(platformsParam)); err != nil {
-			return err
+
+		cwd, err := os.Getwd()
+		if err != nil {
+			return errors.Wrapf(err, "Couldn't get current working directory")
 		}
+
+		return sh.RunCommand("docker", "run", "--rm", "-t",
+			"-v", fmt.Sprintf("%s:/app", cwd),
+			pg.DockerImage,
+			"-i", repoPath,
+			"-p", platformsParam)
 	}
 	return nil
 }

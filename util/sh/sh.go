@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -46,4 +47,9 @@ func Quote(arg string) string {
 func SplitParameters(s string) []string {
 	r := regexp.MustCompile(`'[^']*'|[^ ]+`)
 	return r.FindAllString(s, -1)
+}
+
+// Path joins filepath parts.
+func Path(parts ...string) string {
+	return filepath.Join(parts...)
 }
