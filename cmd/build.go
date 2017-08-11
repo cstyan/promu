@@ -23,6 +23,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/mcuadros/go-version"
 	"github.com/pkg/errors"
 	shell "github.com/progrium/go-shell"
 	"github.com/spf13/cobra"
@@ -144,7 +145,7 @@ func getLdflags(info ProjectInfo) string {
 	}
 
 	if goos == "darwin" {
-		if !stringInSlice("-s", ldflags) {
+		if version.Compare(viper.GetString("go.version"), "1.6", "<") && !stringInSlice("-s", ldflags) {
 			// Fixes dwarf error: golang/go#11994
 			ldflags = append(ldflags, "-s")
 		}
